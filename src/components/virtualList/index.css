@@ -1,0 +1,13 @@
+.list-container {
+  height: 100%;
+  overflow: auto;
+}
+
+.list-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid darkgray;
+  border-radius: 3px;
+  color: white;
+}
