@@ -1,7 +1,7 @@
 import { useState, useRef, MutableRefObject, useEffect, useMemo } from 'react'
 import useSize from './useSize'
 interface VirtualListOptions {
-  itemHeight: number
+  itemHeight: number | ((index: number) => number)
   overScan?: number
 }
 
@@ -15,11 +15,37 @@ function useVirtualList(list: any[], options: VirtualListOptions) {
   const { itemHeight, overScan = 5 } = options
 
   const getOffset = (scrollTop: number) => {
-    return Math.floor(scrollTop / itemHeight) + 1
+    if (typeof itemHeight === 'number') {
+      return Math.floor(scrollTop / itemHeight) + 1
+    }
+    let sum = 0
+    let offset = 0
+    for (let i = 0; i < list.length; i++) {
+      const height = itemHeight(i)
+      sum += height
+      if (sum >= scrollTop) {
+        offset = i
+        break
+      }
+    }
+    return offset + 1
   }
 
   const getViewCapacity = (containerHeight: number) => {
-    return Math.ceil(containerHeight / itemHeight)
+    if (typeof itemHeight === 'number') {
+      return Math.ceil(containerHeight / itemHeight)
+    }
+    let sum = 0
+    let capacity = 0
+    for (let i = startIndex; i < list.length; i++) {
+      const height = itemHeight(i)
+      sum += height
+      if (sum >= containerHeight) {
+        capacity = i
+        break
+      }
+    }
+    return capacity - startIndex
   }
 
   const calculateRange = () => {
@@ -38,14 +64,18 @@ function useVirtualList(list: any[], options: VirtualListOptions) {
     calculateRange()
   }, [width, height])
 
-  const totalHeight = useMemo(() => list.length * itemHeight, [
-    list.length,
-    itemHeight,
-  ])
+  const totalHeight = useMemo(() => {
+    if (typeof itemHeight === 'number') {
+      return list.length * itemHeight
+    }
+    return list.reduce((sum, _, index) => sum + itemHeight(index), 0)
+  }, [list.length, itemHeight])
 
   const getDistanceTop = (index: number) => {
-    const height = index * itemHeight
-    return height
+    if (typeof itemHeight === 'number') {
+      return index * itemHeight
+    }
+    return list.slice(0, index).reduce((sum, _, i) => sum + itemHeight(i), 0)
   }
 
   const scrollTo = (index: number) => {
