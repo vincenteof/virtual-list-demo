@@ -1,6 +1,15 @@
-.list-container {
-  height: 100%;
+.list-container1 {
+  height: 200px;
   overflow: auto;
+}
+
+.list-container2 {
+  height: 200px;
+  overflow: auto;
+}
+
+.list-wrapper > * {
+  margin-bottom: 50px;
 }
 
 .list-item {
